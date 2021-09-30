@@ -182,6 +182,7 @@ def main():
     compact_model.save('compact_model.hdf5')
     
     # test
+    compact_model = compactor_convert(compact_model)
     loss = compact_model.evaluate(val_images, val_labels, batch_size=128, verbose=2)
     print('compact model loss:', loss, '\n')
 
