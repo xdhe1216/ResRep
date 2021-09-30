@@ -178,7 +178,7 @@ def main():
                         batch_size=256,
                         verbose=2,
                         validation_data=(val_images, val_labels),
-                        callbacks=[CompactorMonitor(step=2, patience=10, verbose=2)])
+                        callbacks=[CompactorMonitor(min_flops=0.5, step=2, patience=10, verbose=2)])
     compact_model.save('compact_model.hdf5')
     loss = compact_model.evaluate(val_images, val_labels, batch_size=128, verbose=2)
     print('compact model loss:', loss, '\n')
