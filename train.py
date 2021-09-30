@@ -1,18 +1,19 @@
+import keras
 from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Activation, BatchNormalization
 from keras.models import Sequential
 from keras import layers
 from keras.models import load_model
 from tensorflow.examples.tutorials.mnist import input_data
-import keras
+
 import keras.backend as K
 import numpy as np
 import tensorflow as tf
 from compactor import CompactorLayer, lasso, CompactorMonitor
 from kerassurgeon.operations import delete_layer, delete_channels
 
-tf_config = tf.compat.v1.ConfigProto()
-tf_config.gpu_options.allow_growth = True
-tf.compat.v1.Session(config=tf_config)
+# tf_config = tf.compat.v1.ConfigProto()
+# tf_config.gpu_options.allow_growth = True
+# tf.compat.v1.Session(config=tf_config)
 
 
 def combine_conv_bn(model, conv_name, bn_name):
@@ -87,20 +88,20 @@ def get_orignal_model():
                      activation=None,
                      padding='same',
                      name='conv_1'))
-    model.add(BatchNormalization(name='bn_1'))
+    model.add(BatchNormalization(name='batch_normalization_1'))
     # model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(MaxPool2D())
     model.add(Conv2D(10, [3, 3], activation=None, padding='same', name='conv_2'))
-    model.add(BatchNormalization(name='bn_2'))
+    model.add(BatchNormalization(name='batch_normalization_2'))
     # model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(Conv2D(10, [3, 3], activation=None, padding='same', name='conv_3'))
-    model.add(BatchNormalization(name='bn_3'))
+    model.add(BatchNormalization(name='batch_normalization_3'))
     # model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(Conv2D(10, [3, 3], activation=None, padding='same', name='conv_4'))
-    model.add(BatchNormalization(name='bn_4'))
+    model.add(BatchNormalization(name='batch_normalization_4'))
     # model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(MaxPool2D())
@@ -123,20 +124,20 @@ def get_compact_modle():
                      activation=None,
                      padding='same',
                      name='conv_1'))
-    model.add(BatchNormalization(name='bn_1'))
+    model.add(BatchNormalization(name='batch_normalization_1'))
     model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(MaxPool2D())
     model.add(Conv2D(10, [3, 3], activation=None, padding='same', name='conv_2'))
-    model.add(BatchNormalization(name='bn_2'))
+    model.add(BatchNormalization(name='batch_normalization_2'))
     model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(Conv2D(10, [3, 3], activation=None, padding='same', name='conv_3'))
-    model.add(BatchNormalization(name='bn_3'))
+    model.add(BatchNormalization(name='batch_normalization_3'))
     model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(Conv2D(10, [3, 3], activation=None, padding='same', name='conv_4'))
-    model.add(BatchNormalization(name='bn_4'))
+    model.add(BatchNormalization(name='batch_normalization_4'))
     model.add(CompactorLayer(10, kernel_regularizer=lasso(1e-4)))
     model.add(Activation('relu'))
     model.add(MaxPool2D())
@@ -168,7 +169,7 @@ def main():
 
     orig_model.save('orignal_model.hdf5')
 
-    # train compactor model
+    #train compactor model
     compact_model = get_compact_modle()
     compact_model.load_weights('orignal_model.hdf5', by_name=True, skip_mismatch=True)
 
@@ -183,15 +184,18 @@ def main():
     
     # test
     compact_model = compactor_convert(compact_model)
+    sgd = keras.optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+    compact_model.compile(optimizer=sgd,
+                  loss='categorical_crossentropy',
+                  metrics=['accuracy'])
     loss = compact_model.evaluate(val_images, val_labels, batch_size=128, verbose=2)
     print('compact model loss:', loss, '\n')
+    # compact_model.summary()
 
     orig_model = load_model('orignal_model.hdf5')
     loss = orig_model.evaluate(val_images, val_labels, batch_size=128, verbose=2)
     print('orignal model loss:', loss, '\n')
 
 
-
 if __name__ == '__main__':
     main()
-
