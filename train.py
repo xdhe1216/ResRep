@@ -180,10 +180,11 @@ def main():
                         validation_data=(val_images, val_labels),
                         callbacks=[CompactorMonitor(min_flops=0.5, step=2, patience=10, verbose=2)])
     compact_model.save('compact_model.hdf5')
+    
+    # test
     loss = compact_model.evaluate(val_images, val_labels, batch_size=128, verbose=2)
     print('compact model loss:', loss, '\n')
 
-    # test
     orig_model = load_model('orignal_model.hdf5')
     loss = orig_model.evaluate(val_images, val_labels, batch_size=128, verbose=2)
     print('orignal model loss:', loss, '\n')
